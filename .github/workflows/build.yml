@@ -1,16 +1,14 @@
 name: Build KickflipOS
 
 # Every push builds the ISO from source and boot-tests it in QEMU.
-# Pushing a tag like v1.2.0 also publishes a GitHub Release with the ISO.
 on:
   push:
     branches: [main]
-    tags: ["v*"]
   pull_request:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build:
@@ -38,55 +36,10 @@ jobs:
       - name: Boot-test it
         run: python3 tests/smoke_test.py
 
-      - name: Upload the ISO and screenshot
+      - name: Upload the boot screenshot
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: kickflipos
-          path: |
-            kickflipos.iso
-            build/screenshot.png
+          name: screenshot
+          path: build/screenshot.png
           if-no-files-found: ignore
-
-      - name: Package the GPL source and build configs
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: |
-          . ./versions.sh
-          mkdir -p dist
-          cp kickflipos.iso dist/
-          git -C build/linux-$KERNEL_VERSION archive --prefix=linux-$KERNEL_VERSION/ HEAD \
-            | xz -T0 > dist/linux-$KERNEL_VERSION.tar.xz
-          git -C build/busybox-$BUSYBOX_VERSION archive --prefix=busybox-$BUSYBOX_VERSION/ HEAD \
-            | bzip2 > dist/busybox-$BUSYBOX_VERSION.tar.bz2
-          cp build/linux-$KERNEL_VERSION/.config dist/kernel.config
-          cp build/busybox-$BUSYBOX_VERSION/.config dist/busybox.config
-          cp build/screenshot.png dist/
-          (cd dist && sha256sum * > SHA256SUMS)
-
-      - name: Publish the release
-        if: startsWith(github.ref, 'refs/tags/v')
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          . ./versions.sh
-          cat > notes.md << NOTES
-          ## Drop in
-
-          1. Download **kickflipos.iso** below.
-          2. In VirtualBox, make a new VM: Type **Linux**, Version **Other Linux (64-bit)**, 512 MB RAM.
-          3. Attach the ISO as the CD and start it.
-
-          Optional: attach a small blank virtual disk and KickflipOS turns it into your **locker**,
-          so high scores and files survive reboots. See the README.
-
-          ## What's inside
-
-          - Linux $KERNEL_VERSION (custom tiny config, \`kernel.config\`)
-          - BusyBox $BUSYBOX_VERSION (static, \`busybox.config\`)
-          - The KickflipOS rootfs from this tag
-
-          The kernel and BusyBox are GPL-2.0. Their exact source is attached to this release.
-          See THIRD-PARTY-NOTICES.md for details.
-          NOTES
-          gh release create "$GITHUB_REF_NAME" dist/* \
-            --title "KickflipOS $GITHUB_REF_NAME" --notes-file notes.md

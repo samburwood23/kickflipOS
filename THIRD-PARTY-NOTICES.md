@@ -1,17 +1,15 @@
 # Third-party software in KickflipOS
 
-The KickflipOS ISO contains software written by other people. This file explains what's in
-it and where to get the source.
+`build.sh` builds the KickflipOS ISO from other people's software. This file lists what's in it
+and where the source comes from.
 
-| Component | Version | Licence | Where the source is |
+| Component | Version | Licence | Source |
 | --- | --- | --- | --- |
-| Linux kernel | see `versions.sh` | GPL-2.0 | Attached to every [GitHub Release](https://github.com/samburwood23/kickflipOS/releases) as `linux-*.tar.xz`, with the exact build config as `kernel.config`. Upstream: [kernel.org](https://www.kernel.org) |
-| BusyBox | see `versions.sh` | GPL-2.0 | Attached to every release as `busybox-*.tar.bz2`, with `busybox.config`. Upstream: [busybox.net](https://busybox.net) |
-| GRUB (boot loader) | Ubuntu 24.04's `grub-pc-bin` | GPL-3.0 | Ubuntu's `grub2` source package: [launchpad.net/ubuntu/+source/grub2](https://launchpad.net/ubuntu/+source/grub2) |
-| Terminus console font | Ubuntu 24.04's `console-setup-linux` | SIL Open Font License 1.1 | [terminus-font.sourceforge.net](https://terminus-font.sourceforge.net) |
+| Linux kernel | see `versions.sh` | GPL-2.0 | Downloaded by `build.sh` from the pinned commit in `versions.sh`. Upstream: [kernel.org](https://www.kernel.org) |
+| BusyBox | see `versions.sh` | GPL-2.0 | Downloaded by `build.sh` from the pinned commit in `versions.sh`. Upstream: [busybox.net](https://busybox.net) |
+| GRUB (boot loader) | your system's `grub-pc-bin` | GPL-3.0 | Your distribution's `grub2` source package |
+| Terminus console font | your system's `console-setup-linux` | SIL Open Font License 1.1 | [terminus-font.sourceforge.net](https://terminus-font.sourceforge.net) |
 
 `build.sh` and `config/` are the complete scripts used to configure and build the kernel and
-BusyBox from that source.
-
-Everything else in this repository (the scripts in `rootfs/`, `build.sh`, the tests and the
-workflow) is the KickflipOS project itself.
+BusyBox. If you share a built ISO with anyone, the GPL requires you to make the matching
+source available to them too.
