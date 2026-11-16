@@ -3,3 +3,23 @@ Skate the code you want to see in the world.
 Every bail is a bug report from gravity.
 Stay low, push hard, commit early.
 The streets are your filesystem. Explore them.
+Look where you want to go. Your board follows your shoulders.
+Bend your knees. Stiff legs are how bails happen.
+Learn to fall before you learn to flip. Roll out, don't reach out.
+Ollie up a curb a hundred times before you ollie down a stair.
+Film your tries. Your feet lie to you; the footage doesn't.
+Skate with people better than you. Hype is contagious.
+Commit or don't go. Half-committing is how you get hurt.
+Ten tries is a warm-up. Fifty tries is a session. One land is a story.
+Kick out of a trick you won't make. Ankles are hard to reboot.
+The spot isn't going anywhere. Come back tomorrow.
+Tab completion is the ollie of the terminal. Learn it first.
+Press the up arrow. Your last trick is right there.
+Read the error message all the way to the end. The answer is usually in it.
+Ctrl+C is a bail you control. Use it when a command won't stop.
+Use 'man' on a real Linux box, and '--help' here. Nobody lands it on the first try.
+Before you delete it, ls it. Look before you drop in.
+Small commits are like small tricks: easy to land, easy to undo.
+If it works, write down how. Future you is a beginner too.
+Everything in KickflipOS lives in RAM. Bail and it's gone, so enjoy the session.
+Respect the locals. Read the README before you push.
