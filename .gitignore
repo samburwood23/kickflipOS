@@ -8,3 +8,4 @@ rootfs/bin/busybox
 rootfs/usr/
 rootfs/lib/
 rootfs/lib64/
+__pycache__/
