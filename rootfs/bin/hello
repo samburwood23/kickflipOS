@@ -8,4 +8,5 @@ cat << 'ART'
       (O)   (O)
 ART
 printf "\033[0m\n"
-printf "  Play: \033[1mskate\033[0m   Tricks: \033[1mollie\033[0m  \033[1mtrick\033[0m  \033[1mstoke\033[0m  \033[1msession\033[0m  \033[1mbail\033[0m\n\n"
+printf "  Play:   \033[1mskate\033[0m  \033[1mcruise\033[0m\n"
+printf "  Tricks: \033[1mollie\033[0m  \033[1mtrick\033[0m  \033[1mstoke\033[0m  \033[1msession\033[0m     Gear: \033[1mlocker\033[0m  \033[1mbail\033[0m\n\n"

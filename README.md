@@ -6,43 +6,59 @@ handful of scripts with attitude. Your guide is **Ollie**, a skater who lives in
 ![KickflipOS shell](docs/screenshots/kickflipos-shell.png)
 ![Street Session skate game](docs/screenshots/kickflipos-skate-game.png)
 
-## Build it (on Ubuntu 24.04)
+## Try it (no building needed)
+
+1. Download **kickflipos.iso** from the [latest release](https://github.com/samburwood23/kickflipOS/releases/latest).
+2. In VirtualBox, click **New**. **Name:** `KickflipOS`. **Type:** `Linux`. **Version:** `Other Linux (64-bit)`.
+   **Memory:** `512 MB`. **Hard Disk:** **Do Not Add a Virtual Hard Disk** (the locker below adds one).
+3. Attach the ISO as the VM's CD, then click **Start**:
+
+       VBoxManage storageattach KickflipOS --storagectl "IDE" --port 0 --device 0 --type dvddrive --medium ~/Downloads/kickflipos.iso
+
+At the yellow menu, press Enter on **KickflipOS - drop in**. If the screen stays black, restart and
+choose **old school (text mode)**.
+
+## Save your stuff: the locker
+
+KickflipOS runs from RAM, so everything resets when you power off unless you give it a **locker**:
+a small virtual disk that keeps `/root` (your high scores, files and shell history). With the VM
+powered off:
+
+    VBoxManage createmedium disk --filename ~/kickflipos-locker.vdi --size 64
+    VBoxManage storageattach KickflipOS --storagectl "IDE" --port 1 --device 0 --type hdd --medium ~/kickflipos-locker.vdi
+
+On the next boot you'll see `New locker set up`. Run `locker` inside KickflipOS to check it.
+KickflipOS only ever formats a disk that is completely blank, so it won't wipe a disk with
+anything on it.
+
+## Build it yourself (Ubuntu 24.04)
 
 **1. Install the build tools** (one time only):
 
-    sudo apt install git busybox-static cpio grub-pc-bin xorriso mtools kbd console-setup-linux
+    sudo apt install git build-essential flex bison bc libelf-dev libssl-dev cpio xz-utils grub-pc-bin xorriso mtools console-setup-linux
 
 **2. Get the code** (one time only):
 
-    cd ~
     git clone https://github.com/samburwood23/kickflipOS.git
     cd kickflipOS
 
-**3. Build the ISO:**
+**3. Build:**
 
     ./build.sh
 
-The first build asks for your password once, so it can copy your Ubuntu kernel. When it prints
-`Built kickflipos.iso - time to drop in`, you have a file called `kickflipos.iso` in the folder.
+The first build downloads and compiles Linux and BusyBox from source, which takes a few minutes.
+After that, rebuilding takes seconds. You get `kickflipos.iso` in the folder.
 
-## Boot it in VirtualBox
-
-1. Open VirtualBox and click **New**.
-2. **Name:** `KickflipOS`. **ISO Image:** leave empty. **Type:** `Linux`. **Version:** `Other Linux (64-bit)`.
-3. **Memory:** `512 MB`. **CPUs:** `1`.
-4. **Hard Disk:** choose **Do Not Add a Virtual Hard Disk**, then click **Finish** (ignore the warning).
-5. Select the VM, then go to **Settings > Storage**. Click the empty CD icon under *Controller: IDE*. On the right,
-   click the small CD icon > **Choose a disk file...**, then pick `~/kickflipOS/kickflipos.iso`.
-6. Click **OK**, then **Start**.
-
-At the yellow menu, press Enter on **KickflipOS - drop in**. If the screen stays black or looks broken,
-restart the VM and choose **old school (text mode)** instead.
+**4. Test it (optional):** `sudo apt install qemu-system-x86`, then `python3 tests/smoke_test.py`
+boots it three times and checks everything works, including the locker.
 
 ## Commands inside KickflipOS
 
 | Command | What it does |
 |---|---|
-| `skate` | Play **Street Session**, the skate game |
+| `skate` | Play **Street Session**, the turn-based combo game |
+| `cruise` | Play **Street Cruise**, the real-time side-scroller |
+| `locker` | Check whether your stuff is being saved |
 | `hello` | Show the welcome screen |
 | `ollie` | Ollie says something |
 | `trick` (or `grind`) | Try a random trick: land it or bail |
@@ -60,7 +76,13 @@ You also get ~300 standard commands from BusyBox (`ls`, `cd`, `cat`, `vi`, `top`
 
 Each game is 3 runs at random spots. On each run, chain tricks to build a combo. Every extra trick
 is harder to land, and if you bail, you lose the whole run. Roll away (`r`) to bank your points.
-Your score is combo points x number of tricks x spot multiplier. High scores reset on reboot (for now).
+Your score is combo points x number of tricks x spot multiplier.
+
+### Street Cruise rules
+
+Cones roll towards you. Press **SPACE** (or **W**) to ollie over them. Press **K** while you're in
+the air to kickflip for 25 bonus points. The street speeds up as your score climbs. **Q** quits.
+Best scores are saved in your locker.
 
 ## Make changes
 
@@ -71,7 +93,10 @@ Your score is combo points x number of tricks x spot multiplier. High scores res
 | Ollie's lines, tricks, wisdom | `rootfs/etc/ollie.txt`, `tricks.txt`, `stoke.txt` (one per line) |
 | Colours | `rootfs/bin/skatecolors` (hex values) |
 | Prompt and aliases | `rootfs/etc/profile` |
-| The game | `rootfs/bin/skate` |
+| The games | `rootfs/bin/skate`, `rootfs/bin/cruise` |
+| Kernel options | `config/kernel.fragment` |
+| BusyBox options | `config/busybox.fragment` |
+| Kernel/BusyBox versions | `versions.sh` |
 | Boot menu | `iso/boot/grub/grub.cfg` |
 
 After editing, run `./build.sh` again and restart the VM. To get changes made elsewhere (for example by Claude):
@@ -81,8 +106,16 @@ After editing, run `./build.sh` again and restart the VM. To get changes made el
 
 ## How it works
 
-`build.sh` copies three things from your Ubuntu install: the kernel, a static BusyBox and the
-`setfont` tool with its libraries. It packs them with everything in `rootfs/` into a compressed
-archive (the *initramfs*), then wraps that and the GRUB boot menu into a bootable ISO. When the VM
-boots, the kernel unpacks the initramfs into RAM and runs `rootfs/init`, which is the start of
-KickflipOS. Everything runs from RAM, so nothing is saved between boots.
+`build.sh` downloads exact, pinned versions of the Linux kernel and BusyBox (`versions.sh`) and
+builds them from source. The kernel starts from `make tinyconfig`, the smallest possible
+configuration, and adds only what KickflipOS needs (`config/kernel.fragment`). The result is about
+2 MB, compared with about 15 MB for Ubuntu's kernel. BusyBox is built as a single static binary.
+
+BusyBox and everything in `rootfs/` are packed into a compressed archive (the *initramfs*), which
+`grub-mkrescue` wraps with the kernel and the GRUB boot menu into a bootable ISO. When the VM boots,
+the kernel unpacks the initramfs into RAM and runs `rootfs/init`, which is the start of KickflipOS.
+If a locker disk is attached, `init` mounts it at `/root`.
+
+Every push to GitHub builds the ISO and boot-tests it in QEMU (`.github/workflows/build.yml`).
+Pushing a version tag such as `v1.1.0` also publishes a release with the ISO and the exact GPL
+source for the kernel and BusyBox. See `THIRD-PARTY-NOTICES.md`.

@@ -6,8 +6,27 @@ mount -t sysfs sys /sys
 mount -t devtmpfs dev /dev
 hostname kickflip
 export HOME=/root
-/usr/bin/setfont -C /dev/tty0 /usr/share/consolefonts/kickflip.psf 2>/dev/null
+setfont -C /dev/tty0 /usr/share/consolefonts/kickflip.psf 2>/dev/null
 skatecolors
+
+# The locker: a virtual disk that keeps /root (high scores, files, shell history)
+# between boots. A brand-new, completely empty disk gets formatted automatically.
+# A disk with anything else on it is never touched.
+locker="No locker attached. Nothing will be saved this session."
+for d in /dev/sda /dev/sdb /dev/sdc; do
+  [ -b "$d" ] || continue
+  if ! blkid "$d" | grep -q 'LABEL="kickflip"'; then
+    [ -z "$(head -c 1048576 "$d" | tr -d '\000' | head -c 1)" ] || continue
+    mke2fs -L kickflip "$d" >/dev/null 2>&1 || continue
+    fresh=1
+  fi
+  if mount -t ext2 -o sync "$d" /root; then
+    locker="Locker open. Your stuff is saved."
+    [ -n "$fresh" ] && locker="New locker set up. Your stuff is saved from now on."
+    break
+  fi
+done
+
 clear
 
 ok() { printf "  \033[1;33m[ RAD ]\033[0m %s\n" "$1"; sleep 0.3; }
@@ -17,6 +36,7 @@ ok "Spinning bearings (ABEC-7)"
 ok "Gripping deck"
 ok "Waxing the curb"
 ok "Checking for security guards"
+ok "$locker"
 printf "  \033[1;32m[ GO! ]\033[0m Dropping in\n"
 sleep 0.7
 clear

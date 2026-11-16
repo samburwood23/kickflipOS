@@ -1,0 +1,143 @@
+#!/bin/sh
+# Street Cruise - a real-time skate game for KickflipOS
+# Ollie over the cones. Kickflip in the air for bonus points. Don't bail.
+E=$(printf '\033')
+Y="$E[1;33m"; R="$E[1;31m"; G="$E[1;32m"; C="$E[1;36m"; P="$E[1;35m"; B="$E[1m"; D="$E[0;37m"; N="$E[0m"
+HS=/root/.cruise_highscore
+W=60        # width of the street
+X=8         # where the skater rides
+GROUND=10   # screen row the board rolls on
+JUMP="1 2 3 3 3 2 1"   # ollie height, frame by frame
+
+pick() { awk -v r=$RANDOM 'BEGIN{srand(r)} {a[NR]=$0} END{print a[int(rand()*NR)+1]}'; }
+at() { printf "$E[%d;%dH" "$1" "$2"; }
+
+BLANK=""
+i=0; while [ $i -lt $W ]; do BLANK="$BLANK "; i=$((i + 1)); done
+ROAD=$(echo "$BLANK" | tr ' ' '=')
+
+finish() { stty sane 2>/dev/null; printf "$E[?25h$N"; clear; }
+trap 'finish; exit 0' INT TERM
+
+title() {
+  clear
+  printf "$Y"
+  cat << 'ART'
+
+     ___ _               _      ___         _
+    / __| |_ _ _ ___ ___| |_   / __|_ _ _  _(_)___ ___
+    \__ \  _| '_/ -_) -_)  _| | (__| '_| || | (_-</ -_)
+    |___/\__|_| \___\___|\__|  \___|_|  \_,_|_/__/\___|
+
+ART
+  printf "$N"
+  printf "   ${B}SPACE${N} or ${B}W${N}  ollie over the cones ${R}A${N}\n"
+  printf "   ${B}K${N}           kickflip while you're in the air (+25)\n"
+  printf "   ${B}Q${N}           quit\n\n"
+  printf "   Best: ${C}$(cat $HS 2>/dev/null || echo 0)${N}\n\n"
+  printf "   Press SPACE to drop in..."
+}
+
+play() {
+  clear
+  track=$BLANK
+  score=0; cleared=0; frame=0; gap=12
+  air=0       # frames into the current ollie (0 = on the ground)
+  flipped=0
+  msg="Roll out!"
+  delay=0.10
+
+  while :; do
+    # --- input: waiting for a key is also the frame timer ---
+    key=""
+    IFS= read -r -t $delay -n 1 key
+    case "$key" in
+      " "|w|W) [ $air -eq 0 ] && { air=1; flipped=0; } ;;
+      k|K)     if [ $air -gt 0 ] && [ $flipped -eq 0 ]; then
+                 flipped=1; score=$((score + 25)); msg="${P}KICKFLIP! +25${N}"
+               fi ;;
+      q|Q)     return 1 ;;
+    esac
+
+    # --- move the street left and maybe spawn a cone ---
+    gap=$((gap - 1))
+    new=" "
+    if [ $gap -le 0 ] && [ $((RANDOM % 100)) -lt 35 ]; then
+      new="A"
+      if [ $score -gt 300 ] && [ $((RANDOM % 4)) -eq 0 ]; then new="AA"; fi
+      gap=$((9 + RANDOM % 10 - score / 200))
+      [ $gap -lt 8 ] && gap=8
+    fi
+    track="${track#?}$new"
+    track="${track:0:$W}"
+
+    # --- ollie height this frame ---
+    h=0
+    if [ $air -gt 0 ]; then
+      set -- $JUMP
+      if [ $air -le $# ]; then
+        eval h=\${$air}
+        air=$((air + 1))
+      else
+        air=0; h=0
+        [ $flipped -eq 1 ] && msg="${G}Landed it!${N}"
+      fi
+    fi
+
+    # --- collision: a cone under the board while on the ground ---
+    under="${track:$X:1}"
+    if [ "$under" = "A" ]; then
+      if [ $h -eq 0 ]; then
+        at $((GROUND - 1)) $((X + 1)); printf "$R\\o/$N"
+        at $GROUND $((X + 1)); printf "${R}*CRUNCH*$N"
+        return 0
+      fi
+      cleared=$((cleared + 1)); score=$((score + 10))
+    fi
+
+    # --- score and speed ---
+    frame=$((frame + 1))
+    [ $((frame % 2)) -eq 0 ] && score=$((score + 1))
+    case $((score / 150)) in
+      0) delay=0.10 ;; 1) delay=0.085 ;; 2) delay=0.07 ;; 3) delay=0.06 ;;
+      4) delay=0.05 ;; *) delay=0.045 ;;
+    esac
+
+    # --- draw ---
+    at 2 3; printf "${Y}SCORE${N} %-6s ${C}BEST${N} %-6s ${D}cones cleared${N} %-4s" "$score" "$best" "$cleared"
+    at 3 3; printf "$E[K%s$N" "$msg"
+    r=$((GROUND - 4))
+    while [ $r -lt $GROUND ]; do at $r 3; printf "%s" "$BLANK"; r=$((r + 1)); done
+    at $GROUND 3; printf "$R%s$N" "$track"
+    at $((GROUND + 1)) 3; printf "$D%s$N" "$ROAD"
+    board="="; [ $air -gt 0 ] && [ $flipped -eq 1 ] && [ $((frame % 2)) -eq 0 ] && board="%"
+    at $((GROUND - h - 1)) $((X + 3)); printf "%s" "${Y}o$N"
+    at $((GROUND - h)) $((X + 3)); printf "%s" "${Y}$board$N"
+    at 14 1
+  done
+}
+
+best=$(cat $HS 2>/dev/null || echo 0)
+stty -echo -icanon 2>/dev/null
+printf "$E[?25l"
+title
+while :; do
+  key=""; IFS= read -r -n 1 key
+  case "$key" in q|Q) break ;; esac
+  play || break
+  sleep 1
+  # throw away keys mashed during the crash, so they don't skip this screen
+  while IFS= read -r -t 0.05 -n 1 junk; do :; done
+  at 13 3
+  if [ $score -gt $best ]; then
+    best=$score; echo $best > $HS
+    printf "${G}NEW BEST: $score!${N} Ollie is losing their mind.\n"
+  else
+    printf "${R}BAILED.${N} Score: ${C}$score${N}   Best: ${C}$best${N}\n"
+  fi
+  quip=$(printf '%s\n' "Ollie: Cones: 1. You: 0." "Ollie: That cone came out of nowhere. Like all cones." \
+         "Ollie: Bend your knees and pop earlier, bro." "Ollie: The street always wins. Go again." | pick)
+  at 14 3; printf "%s\n" "${Y}$quip${N}"
+  at 16 3; printf "SPACE to go again, Q to quit "
+done
+finish

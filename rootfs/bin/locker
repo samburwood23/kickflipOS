@@ -1,0 +1,10 @@
+#!/bin/sh
+# Shows whether your stuff is being saved between boots
+if grep -q ' /root ' /proc/mounts; then
+  printf "  \033[1;32mLocker open.\033[0m Everything in /root is saved between boots.\n"
+  df -h /root | awk 'NR==2 {print "  Space: " $3 " used, " $4 " free"}'
+  [ -f /root/.skate_highscore ] && echo "  Skate high score: $(cat /root/.skate_highscore)"
+else
+  printf "  \033[1;33mNo locker.\033[0m Nothing is saved when you power off.\n"
+  echo "  See 'Save your stuff' in the README to attach one."
+fi

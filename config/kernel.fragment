@@ -1,0 +1,59 @@
+# KickflipOS kernel options, applied on top of `make tinyconfig`.
+# build.sh fails if any of these don't end up in the final .config.
+
+# Basics
+CONFIG_64BIT=y
+CONFIG_PRINTK=y
+CONFIG_BUG=y
+CONFIG_MULTIUSER=y
+CONFIG_FUTEX=y
+CONFIG_EPOLL=y
+CONFIG_SHMEM=y
+CONFIG_POSIX_TIMERS=y
+CONFIG_FILE_LOCKING=y
+CONFIG_BINFMT_ELF=y
+CONFIG_BINFMT_SCRIPT=y
+CONFIG_KERNEL_XZ=y
+
+# Boot from an initramfs
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_RD_GZIP=y
+CONFIG_DEVTMPFS=y
+CONFIG_PROC_FS=y
+CONFIG_SYSFS=y
+CONFIG_TMPFS=y
+
+# Hardware: PCI, ACPI (so `bail` can power off), keyboard
+CONFIG_PCI=y
+CONFIG_ACPI=y
+CONFIG_INPUT=y
+CONFIG_INPUT_KEYBOARD=y
+CONFIG_KEYBOARD_ATKBD=y
+CONFIG_SERIO=y
+CONFIG_SERIO_I8042=y
+
+# Console: text mode, VESA framebuffer (800x600 boot entry), serial (for tests)
+CONFIG_TTY=y
+CONFIG_VT=y
+CONFIG_VT_CONSOLE=y
+CONFIG_UNIX98_PTYS=y
+CONFIG_VGA_CONSOLE=y
+CONFIG_FB=y
+CONFIG_FB_VESA=y
+# GRUB's gfxpayload hands over the mode as a 'simple framebuffer'
+CONFIG_SYSFB_SIMPLEFB=y
+CONFIG_FB_SIMPLE=y
+CONFIG_FRAMEBUFFER_CONSOLE=y
+CONFIG_SERIAL_8250=y
+CONFIG_SERIAL_8250_CONSOLE=y
+
+# Disks for the locker: VirtualBox IDE (PIIX) and SATA (AHCI), ext2 via ext4
+CONFIG_BLOCK=y
+CONFIG_ATA=y
+CONFIG_ATA_SFF=y
+CONFIG_ATA_BMDMA=y
+CONFIG_ATA_PIIX=y
+CONFIG_SATA_AHCI=y
+CONFIG_BLK_DEV_SD=y
+CONFIG_EXT4_FS=y
+CONFIG_EXT4_USE_FOR_EXT2=y

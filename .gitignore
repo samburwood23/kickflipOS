@@ -1,9 +1,10 @@
+# Build output (build.sh creates all of these)
+build/
 kickflipos.iso
+# Left over from the pre-v1 build.sh, which copied host files into the tree
 iso/boot/vmlinuz
 iso/boot/initramfs.gz
 rootfs/bin/busybox
-rootfs/usr/share/consolefonts/kickflip.psf
-rootfs/usr/bin/setfont
+rootfs/usr/
 rootfs/lib/
 rootfs/lib64/
-rootfs/usr/lib/
