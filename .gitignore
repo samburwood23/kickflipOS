@@ -1,0 +1,9 @@
+kickflipos.iso
+iso/boot/vmlinuz
+iso/boot/initramfs.gz
+rootfs/bin/busybox
+rootfs/usr/share/consolefonts/kickflip.psf
+rootfs/usr/bin/setfont
+rootfs/lib/
+rootfs/lib64/
+rootfs/usr/lib/

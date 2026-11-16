@@ -1,0 +1,2 @@
+#!/bin/sh
+awk -v r=$RANDOM 'BEGIN{srand(r)} {a[NR]=$0} END{print "  Ollie: " a[int(rand()*NR)+1]}' /etc/ollie.txt

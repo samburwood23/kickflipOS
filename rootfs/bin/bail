@@ -1,0 +1,5 @@
+#!/bin/sh
+printf "\n  \033[1;33mOllie kicks up the board. Later, skater!\033[0m\n\n"
+sleep 1
+sync
+poweroff -f

@@ -1,0 +1,8 @@
+#!/bin/sh
+up=$(cut -d. -f1 /proc/uptime)
+if   [ $up -lt 60 ];   then m="Warming up. Pushing around the lot."
+elif [ $up -lt 600 ];  then m="In the flow. Landing everything."
+elif [ $up -lt 3600 ]; then m="Gnarly session. Shins are bleeding."
+else m="Legs are jelly. Time to grab a slurpee."
+fi
+echo "  Session time ${up}s: $m"

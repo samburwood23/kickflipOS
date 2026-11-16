@@ -1,0 +1,19 @@
+#!/bin/sh
+# Redefine console colour n (0-f) as rrggbb
+p() { printf '\033]P%s%s' "$1" "$2"; }
+p 0 15151a   # asphalt (background)
+p 1 ff4d4d   # brick red
+p 2 7cff6b   # neon green
+p 3 ffc93c   # deck yellow
+p 4 3a86ff   # sky blue
+p 5 ff5ec4   # sticker pink
+p 6 3ee0d0   # pool teal
+p 7 c8c8c8   # concrete
+p 8 4a4a50   # dark concrete
+p 9 ff6b6b   # bright red
+p a 9dff8f   # bright green
+p b ffe066   # bright yellow
+p c 6aa6ff   # bright blue
+p d ff8ad8   # bright pink
+p e 7af5e8   # bright teal
+p f f5f0e1   # chalk white

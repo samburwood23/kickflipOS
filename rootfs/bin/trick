@@ -1,0 +1,9 @@
+#!/bin/sh
+t=$(awk -v r=$RANDOM 'BEGIN{srand(r)} {a[NR]=$0} END{print a[int(rand()*NR)+1]}' /etc/tricks.txt)
+printf "  You go for a \033[1m%s\033[0m...\n" "$t"
+sleep 1
+if [ $((RANDOM % 10)) -lt 7 ]; then
+  printf "  \033[1;32mLANDED IT!\033[0m The crowd goes wild.\n"
+else
+  printf "  \033[1;31mBAILED.\033[0m Core dumped. Get back up.\n"
+fi
