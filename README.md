@@ -3,6 +3,9 @@
 A tiny skateboard-themed Linux OS that runs in VirtualBox. It's the Linux kernel, BusyBox and a
 handful of scripts with attitude. Your guide is **Ollie**, a skater who lives in the terminal.
 
+![KickflipOS shell](docs/screenshots/kickflipos-shell.png)
+![Street Session skate game](docs/screenshots/kickflipos-skate-game.png)
+
 ## Build it (on Ubuntu 24.04)
 
 **1. Install the build tools** (one time only):
